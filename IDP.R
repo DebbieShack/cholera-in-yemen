@@ -238,3 +238,5 @@ negbin <- glm.nb(S.Cases ~ ImpCases, data = EstImpInfxCases)
 lm <- lm(S.Cases ~ ImpCases, data = EstImpInfxCases)
 summary(negbin)
 summary(lm)
+
+#I'm not actually adding any new code here. Just a comment to test GitHub
