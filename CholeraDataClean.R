@@ -6,6 +6,7 @@ library(stats)
 library(rlist) #list.cbind
 library(ggplot2)
 library(magrittr)
+library(EpiEstim)
 #The data comes from here: https://app.powerbi.com/view?r=eyJrIjoiNTY3YmU0NTItMmFjYy00OTUxLWI2NzEtOTU5N2Q0MDBjMjE5IiwidCI6ImI3ZTNlYmJjLTE2ZTctNGVmMi05NmE5LTVkODc4ZDg3MDM5ZCIsImMiOjl9
 #NOTE: they stopped collecting data for some time in 2017 at the end of the first wave.
 #NOTE2: For some period in 2018, they changed the definition of 'cholera case' from suspected case to confirmed case
@@ -80,8 +81,8 @@ WHO_weekly_yem <- list.cbind(WHO_weekly_yem_raw) %>% select(c(1,2,4,6,8))
 colnames(WHO_weekly_yem) <- c("Date", "S.Cases", "Deaths", "RDT", "Under5") #weekly numbers aggregated at Yemen level
 
 ###weekly numbers aggregated to District level
-#saveRDS(WHO_weekly, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_dist.RDS")
-#WHO_weekly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_dist.RDS")
+#saveRDS(WHO_weekly, "C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_dist.RDS")
+WHO_weekly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_dist.RDS")
 
 ###weekly numbers aggregated to Governorate level
 #saveRDS(WHO_weekly_gov, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_gov.RDS")
@@ -99,8 +100,8 @@ govs <- unique(WHO_weekly_gov$Governorate)
 tCase_pDist <- aggregate(WHO_weekly$S.Cases, by = list(WHO_weekly$Governorate, WHO_weekly$District), FUN = sum)
 colnames(tCase_pDist) <- c("Governorate", "District", "Total_Cases")
 
-saveRDS(tCase_pDist,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/tCase_pDist.RDS")
-tCase_pDist <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/tCase_pDist.RDS")
+saveRDS(tCase_pDist,"C:/Users/dms228/github/cholera-in-yemen/saved_data/tCase_pDist.RDS")
+tCase_pDist <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/tCase_pDist.RDS")
 
 ###########WHO Monthly
 #At District level
@@ -110,7 +111,7 @@ WHO_monthly <- WHO_weekly %>% group_by(Month,Year,Governorate,District) %>%
 WHO_monthly[,5:6] <- WHO_monthly[,5:6] * (30/7)  
 WHO_monthly %<>% mutate(Months_since = Month + 12*(Year - 2017))
 WHO_monthly %<>% mutate(Months_since_lag1 = Months_since - 1)
-#saveRDS(WHO_monthly,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly.RDS")
+#saveRDS(WHO_monthly,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthly.RDS")
 
 #At Governorate level
 WHO_weekly_gov$Month <- month(WHO_weekly_gov$Date)
@@ -120,12 +121,12 @@ WHO_monthly_gov <- WHO_weekly_gov %>% group_by(Month,Year,Governorate) %>%
 WHO_monthly_gov[,4:5] <- WHO_monthly_gov[,4:5] * (30/7)  
 WHO_monthly_gov %<>% mutate(Months_since = Month + 12*(Year - 2017))
 WHO_monthly_gov %<>% mutate(Months_since_lag1 = Months_since - 1)
-saveRDS(WHO_monthly_gov,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly_gov.RDS")
+saveRDS(WHO_monthly_gov,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthly_gov.RDS")
 
 
 #################Cholera data per 100,000 inhabitants
 #At district level
-yemen_pop <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popData.RDS")
+yemen_pop <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popData.RDS")
 pop_cases_joined <- left_join(WHO_weekly, yemen_pop, by = c("Governorate", "District"))
 
 i = 2017
@@ -139,7 +140,7 @@ for(i in 2017:2020){
 }
 
 #At Governorate Level
-yemen_pop_govAgg <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_pop_govAgg.RDS")
+yemen_pop_govAgg <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_pop_govAgg.RDS")
 WHO_weekly_gov$Year <- year(WHO_weekly_gov$Date)
 pop_cases_gov_joined <- dplyr::left_join(WHO_weekly_gov, yemen_pop_govAgg, by = "Governorate")
 
@@ -166,12 +167,12 @@ for(i in 2017:2020){
 
 
 #######SaveRDS##############
-saveRDS(WHO_weekly_per,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_per.RDS")
-WHO_weekly_per <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_per.RDS")
-saveRDS(WHO_weeklyGov_per,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weeklyGov_per.RDS")
-WHO_weeklyGov_per <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weeklyGov_per.RDS")
-saveRDS(WHO_weeklyYem_per,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weeklyYem_per.RDS")
-WHO_weeklyYem_per <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weeklyYem_per.RDS")
+saveRDS(WHO_weekly_per,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_per.RDS")
+WHO_weekly_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_per.RDS")
+saveRDS(WHO_weeklyGov_per,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weeklyGov_per.RDS")
+WHO_weeklyGov_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weeklyGov_per.RDS")
+saveRDS(WHO_weeklyYem_per,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weeklyYem_per.RDS")
+WHO_weeklyYem_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weeklyYem_per.RDS")
 
 #############################
 ##Monthly Cases and Deaths per 100,000 population normalised to a 30 day month
@@ -181,8 +182,19 @@ WHO_monthly_per <- WHO_weekly_per %>% group_by(month,year,Governorate,District) 
 WHO_monthly_per[,5:6] <- WHO_monthly_per[,5:6] * (30/7)  
 WHO_monthly_per %<>% mutate(months_since = month + 12*(year - 2017))
 WHO_monthly_per %<>% mutate(months_since_lag1 = months_since - 1)
-saveRDS(WHO_monthly_per,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly_per.RDS")
+saveRDS(WHO_monthly_per,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthly_per.RDS")
 
+#Estimated R Number
+##example with Hajjah
+WHO_weekly_gov <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_gov.RDS")
+Hajjah_incid <- WHO_weekly_gov %>% filter(Governorate == "Hajjah") %>% select(c(Date, S.Cases))
+colnames(Hajjah_incid) <- c("dates","I")
+
+Hajjah_incid$dates <- Hajjah_incid$dates %>% as.Date()
+
+R <- estimate_R(Hajjah_incid, method = "parametric_si", config = make_config(list(mean_si = 5, std_si = 8)))
+
+test <- Hajjah_incid$dates
 ###Epicurves!
 #Yemen
 ggplot(data = WHO_weekly_yem, aes(x = Date)) +
