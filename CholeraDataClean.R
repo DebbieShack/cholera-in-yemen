@@ -191,10 +191,16 @@ Hajjah_incid <- WHO_weekly_gov %>% filter(Governorate == "Hajjah") %>% select(c(
 colnames(Hajjah_incid) <- c("dates","I")
 
 Hajjah_incid$dates <- Hajjah_incid$dates %>% as.Date()
+datesH <- Hajjah_incid$dates
+IH <- Hajjah_incid$I
 
-R <- estimate_R(Hajjah_incid, method = "parametric_si", config = make_config(list(mean_si = 5, std_si = 8)))
+#specify a 4-week sliding window
+t_start <- seq(2, nrow(Hajjah_incid)-4)
+t_end <- t_start + 4
 
-test <- Hajjah_incid$dates
+R <- estimate_R(Hajjah_incid, method = "parametric_si", config = make_config(list(mean_si = 5, std_si = 8,
+                                                                                  t_start = t_start, t_end = t_end)))
+##To conclude, estimate_R does not work with weekly data
 ###Epicurves!
 #Yemen
 ggplot(data = WHO_weekly_yem, aes(x = Date)) +
