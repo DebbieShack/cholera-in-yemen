@@ -184,7 +184,7 @@ WHO_monthly_per %<>% mutate(months_since = month + 12*(year - 2017))
 WHO_monthly_per %<>% mutate(months_since_lag1 = months_since - 1)
 saveRDS(WHO_monthly_per,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthly_per.RDS")
 
-#Estimated R Number
+######### Attempt to estimate R Number
 ##example with Hajjah
 WHO_weekly_gov <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_gov.RDS")
 Hajjah_incid <- WHO_weekly_gov %>% filter(Governorate == "Hajjah") %>% select(c(Date, S.Cases))

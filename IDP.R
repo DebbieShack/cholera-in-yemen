@@ -10,20 +10,21 @@ library(stats)
 library(MASS)
 # shelter_type <- read_excel("C:/Users/dms228/OneDrive - University of Exeter/PhD/data/Yemen/dtm_displacement_2019.xlsx", 
 #                            sheet = "Shelter Type")
-yemen_popDens <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popDensData.RDS")
-WHO_weekly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly.RDS")
-WHO_weekly_per <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_per.RDS")
-WHO_monthly_per <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly_per.RDS")
-WHO_monthly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly.RDS")
-WHO_monthly_gov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly_gov.RDS")
-WHO_weeklyGov_per <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weeklyGov_per.RDS")
-WHO_weeklyGov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_gov.RDS")
+yemen_popDens <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDensData.RDS")
+WHO_weekly <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly.RDS")
+WHO_weekly_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_per.RDS")
+WHO_monthly_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthly_per.RDS")
+#WHO_monthly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly.RDS")
+#WHO_monthly_gov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly_gov.RDS")
+WHO_weeklyGov_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weeklyGov_per.RDS")
+WHO_weeklyGov <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_gov.RDS")
 WHO19_monthly_gov <- WHO_monthly %>% filter(Year == 2019)
 
-popDens_byGov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popDens_gov.RDS")
+#popDens_byGov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popDens_gov.RDS")
 IDPs <- read_excel("C:/Users/dms228/OneDrive - University of Exeter/PhD/data/Yemen/dtm_displacement_2019.xlsx", 
                    sheet = "RDT-IDPs", skip = 1)[-1,] %>% dplyr::select(-c(2,3,5,6,7,8,11,13,16,33)) 
 
+C:/Users/dms228/github/cholera-in-yemen/saved_data/
 
 WHO_weekly$Date <- WHO_weekly$Date %>% as.numeric() %>% as.POSIXct.Date()
 WHO_weekly$Year <- WHO_weekly$Date %>% year()

@@ -348,8 +348,8 @@ area_byDist$District[area_byDist$District == "AlMawasit"] <- "AlMawasid"
 
 #################
 area_byGov <- area_byDist %>% group_by(Governorate) %>% summarise(Area = sum(Area))
-saveRDS(area_byDist, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/area_byDist.RDS")
-saveRDS(area_byGov, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/area_byGov.RDS")
+saveRDS(area_byDist, "C:/Users/dms228/github/cholera-in-yemen/saved_data/area_byDist.RDS")
+saveRDS(area_byGov, "C:/Users/dms228/github/cholera-in-yemen/saved_data/area_byGov.RDS")
 
 
 
@@ -358,11 +358,11 @@ saveRDS(area_byGov, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/s
 #Aggregated at District level
 yemen_popDens_govAgg <- yemen_popDens %>% group_by(District) %>% dplyr::select(-District) %>% summarise(across(`2017`:`2020`,mean))
 
-saveRDS(yemen_pop, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popData.RDS")
-#yemen_pop <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popData.RDS")
-saveRDS(yemen_popDens, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popDensData.RDS")
-#yemen_popDens <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popDensData.RDS")
-saveRDS(yemen_pop_govAgg,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_pop_govAgg.RDS")
-#yemen_pop_govAgg <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_pop_govAgg.RDS")
+saveRDS(yemen_pop, "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popData.RDS")
+#yemen_pop <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popData.RDS")
+saveRDS(yemen_popDens, "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDensData.RDS")
+#yemen_popDens <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDensData.RDS")
+saveRDS(yemen_pop_govAgg,"C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_pop_govAgg.RDS")
+#yemen_pop_govAgg <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_pop_govAgg.RDS")
 
-saveRDS(popDens_byGov, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popDens_gov.RDS")
+saveRDS(popDens_byGov, "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDens_gov.RDS")

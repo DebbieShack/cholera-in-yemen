@@ -4,6 +4,10 @@ library(dplyr)
 library(ggplot2)
 library(cowplot)
 
+url <- "https://github.com/DebbieShack/cholera-in-yemen/blob/main/saved_data/WHO_weekly.RDS"
+data <- readRDS(url(url, method="libcurl"))
+
+dat <- readRDS(gzcon(url("https://github.com/DebbieShack/cholera-in-yemen/blob/main/saved_data/WHO_weekly.RDS")))
 WHO_weekly_yem <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_yem.RDS")
 WHO_weekly_gov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_gov.RDS")
 WHO_weekly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_dist.RDS")
