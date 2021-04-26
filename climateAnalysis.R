@@ -5,12 +5,15 @@ library(ggplot2)
 library(cowplot)
 
 url <- "https://github.com/DebbieShack/cholera-in-yemen/blob/main/saved_data/WHO_weekly.RDS"
+url <- "https://github.com/DebbieShack/cholera-in-yemen/raw/main/saved_data/WHO_weekly.RDS"
 data <- readRDS(url(url, method="libcurl"))
 
-dat <- readRDS(gzcon(url("https://github.com/DebbieShack/cholera-in-yemen/blob/main/saved_data/WHO_weekly.RDS")))
+WHO_weekly <- readRDS(gzcon(url("https://github.com/DebbieShack/cholera-in-yemen/raw/main/saved_data/WHO_weekly.RDS")))
+WHO_weekly_gov <- readRDS(gzcon(url("https://github.com/DebbieShack/cholera-in-yemen/raw/main/saved_data/WHO_weekly_gov.RDS")))
+
 WHO_weekly_yem <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_yem.RDS")
 WHO_weekly_gov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_gov.RDS")
-WHO_weekly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_dist.RDS")
+
 mean_temp <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/daily_mean_temp.RDS")
 sum_precip <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/sum_precip.RDS")
 shape_govs <- readOGR("C:/Users/dms228/Downloads/Yemen Data/yem_admbnda_adm1_govyem_cso_20191002.shp")
