@@ -4,13 +4,8 @@ library(dplyr)
 library(ggplot2)
 library(cowplot)
 
-url <- "https://github.com/DebbieShack/cholera-in-yemen/blob/main/saved_data/WHO_weekly.RDS"
-url <- "https://github.com/DebbieShack/cholera-in-yemen/raw/main/saved_data/WHO_weekly.RDS"
-data <- readRDS(url(url, method="libcurl"))
 
-WHO_weekly <- readRDS(gzcon(url("https://github.com/DebbieShack/cholera-in-yemen/raw/main/saved_data/WHO_weekly.RDS")))
-WHO_weekly_gov <- readRDS(gzcon(url("https://github.com/DebbieShack/cholera-in-yemen/raw/main/saved_data/WHO_weekly_gov.RDS")))
-
+WHO_weekly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly.RDS")
 WHO_weekly_yem <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_yem.RDS")
 WHO_weekly_gov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_gov.RDS")
 
@@ -24,7 +19,7 @@ pop_2017 <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/s
 
 WHO_weekly_yem$Date <- WHO_weekly_yem$Date %>% as.Date()
 WHO_weekly_gov$Date <- WHO_weekly_gov$Date %>% as.Date()
-mean_temp$Date <- mean_temp$Date %>% as.Date()
+mean_temp$Date <- rownames(mean_temp) %>% as.Date()
 
 WHO_weekly_yem$Date <- WHO_weekly_yem$Date %>% as.POSIXct()
 
