@@ -81,29 +81,21 @@ WHO_weekly_yem <- list.cbind(WHO_weekly_yem_raw) %>% select(c(1,2,4,6,8))
 colnames(WHO_weekly_yem) <- c("Date", "S.Cases", "Deaths", "RDT", "Under5") #weekly numbers aggregated at Yemen level
 
 ###weekly numbers aggregated to District level
-#saveRDS(WHO_weekly, "C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_dist.RDS")
-WHO_weekly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_dist.RDS")
+WHO_weekly$Date <- WHO_weekly$Date %>% as.numeric() %>% as.POSIXct.Date() %>% as.Date()
+saveRDS(WHO_weekly, "C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_dist.RDS")
+#WHO_weekly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_dist.RDS")
 
 ###weekly numbers aggregated to Governorate level
-#saveRDS(WHO_weekly_gov, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_gov.RDS")
+WHO_weekly_gov$Date <- WHO_weekly_gov$Date %>% as.numeric() %>% as.POSIXct.Date() %>% as.Date()
+saveRDS(WHO_weekly_gov, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_gov.RDS")
 #WHO_weekly_gov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_gov.RDS")
 
-###weekly numbers aggregated to National level
-#saveRDS(WHO_weekly_yem, "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_yem.RDS")
+###weekly numbers aggregated to National level#
+WHO_weekly_yem$Date <- WHO_weekly_yem$Date %>% as.numeric() %>% as.POSIXct.Date() %>% as.Date()
+saveRDS(WHO_weekly_yem, "C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_yem.RDS")
 #WHO_weekly_yem <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_yem.RDS")
-WHO_weekly$Date <- WHO_weekly$Date %>% as.numeric() %>% as.POSIXct.Date()
-WHO_weekly_yem$Date <- WHO_weekly_yem$Date %>% as.numeric() %>% as.POSIXct.Date()
-WHO_weekly_gov$Date <- WHO_weekly_gov$Date %>% as.numeric() %>% as.POSIXct.Date()
-govs <- unique(WHO_weekly_gov$Governorate)
 
-#Total cases per district
-tCase_pDist <- aggregate(WHO_weekly$S.Cases, by = list(WHO_weekly$Governorate, WHO_weekly$District), FUN = sum)
-colnames(tCase_pDist) <- c("Governorate", "District", "Total_Cases")
 
-saveRDS(tCase_pDist,"C:/Users/dms228/github/cholera-in-yemen/saved_data/tCase_pDist.RDS")
-tCase_pDist <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/tCase_pDist.RDS")
-
-###########WHO Monthly
 #At District level
 WHO_weekly$Month <- month(WHO_weekly$Date)
 WHO_monthly <- WHO_weekly %>% group_by(Month,Year,Governorate,District) %>% 
