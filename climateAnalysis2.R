@@ -7,11 +7,14 @@ library(ggplot2)
 library(ggpubr) #ggarrange()
 library(cowplot) ##align_plots
 library(dplyr)
+library(zoo)
 #library(rlist) #list.append()
 daily_temp <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/daily_temp.RDS")
+weekly_temp <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_temp.RDS")
 #eDEWS_temp <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/eDEWS_temp.RDS")
 #daily_mean_temp <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/daily_mean_temp.RDS")
 daily_precip <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/daily_precip.RDS")
+weekly_precip <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_precip.RDS")
 WHO_weekly_dist <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_dist.RDS")
 WHO_weekly_gov <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_gov.RDS")
 WHO_weekly_yem <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_yem.RDS")
@@ -45,7 +48,7 @@ pop_data <- "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popData.RD
 min_date <- min(WHO_weekly_yem$Date, na.rm = TRUE) 
 max_date <- max(WHO_weekly_yem$Date, na.rm = TRUE)
 
-#eDEWS bar chart
+#Cholera cases bar chart
 cases_plt <- ggplot(data = WHO_weekly_yem, aes(x = Date, y = S.Cases)) +
   #geom_bar(stat = "identity", size = 3, col = "darkgrey", fill = "darkgrey") +
   geom_segment(aes(xend = Date, y = 0, yend = S.Cases)) +
@@ -61,10 +64,13 @@ cases_plt <- ggplot(data = WHO_weekly_yem, aes(x = Date, y = S.Cases)) +
         plot.title = element_text(size = 14, face = "bold"))
 cases_plt
 
+daily_temp$Date <- as.Date(daily_temp$Date)
+test <- filter(daily_temp, Date >= min_date & Date <= max_date)
+test <- daily_temp$Date
 
-
-temp_plt <- ggplot(data = filter(daily_temp, weeks_since >= 31 & weeks_since <= 173)) +
-  geom_line(aes(x = date, y = Yemen)) +
+daily_temp$yem7d <- rollmean(daily_temp$Yemen, k = 5, fill = NA)
+temp_plt <- ggplot(data = filter(daily_temp, Date >= min_date & Date <= max_date)) +
+  geom_line(aes(x = Date, y = yem7d)) +
   ylab("24h Average Temperature (C)") +
   xlab("") +
   ggtitle("Temperature") +
@@ -74,11 +80,14 @@ temp_plt <- ggplot(data = filter(daily_temp, weeks_since >= 31 & weeks_since <= 
   theme(axis.title = element_text(size = 14), 
         axis.text = element_text(size = 12), 
         plot.title = element_text(size = 14, face = "bold"))
+temp_plt
 
 
-precip_plt <- ggplot(data = filter(sum_precip, weeks_since >= 31 & weeks_since <= 173)) +
-  geom_line(aes(x = stdate, y = Total)) +
-  ylab("Total Weekly Precipitation in Yemen (mm)") +
+daily_precip$Date <- as.Date(daily_precip$Date)
+daily_precip$yem7d <- rollmean(daily_precip$Yemen, k = 5, fill = NA)
+precip_plt <- ggplot(data = filter(daily_precip, Date >= min_date & Date <= max_date)) +
+  geom_line(aes(x = Date, y = yem7d)) +
+  ylab("Total Weekly Precipitation in Yemen (m)") +
   xlab("Date") +
   scale_x_date(date_labels = "%b %y", limits = c(min_date, max_date), 
                date_breaks = "1 month", minor_breaks = NULL) +
@@ -87,6 +96,7 @@ precip_plt <- ggplot(data = filter(sum_precip, weeks_since >= 31 & weeks_since <
   theme(axis.title = element_text(size = 14), 
         axis.text = element_text(size = 12), 
         plot.title = element_text(size = 14, face = "bold"))
+precip_plt
 
 png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/epicurve_wtempprecip.png", width = 1800, height = 900)  
 plot_grid(cases_plt, temp_plt, precip_plt, align = "v", ncol = 1)
