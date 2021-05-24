@@ -185,8 +185,15 @@ weekly_temp <- aggregate(daily_temp_long$temp,
                          FUN = mean) %>%
   set_colnames(c("gov", "weeks_since", "temp"))
 
-saveRDS(weekly_temp, "C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_temp.RDS")
+weekly_temp_yem <- aggregate(weekly_temp$temp, by = list(weekly_temp$weeks_since), FUN = mean) %>% 
+  set_colnames(c("weeks_since", "temp"))
+weekly_dates <- seq(from = as.Date("2017-01-01"), by = "week", length.out = nrow(weekly_precip_yem)) 
+weekly_temp_yem$date <- weekly_dates
+weekly_temp$date <- rep(weekly_dates, each = 23)
 
+saveRDS(weekly_temp, "C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_temp.RDS")
+saveRDS(weekly_temp_yem, "C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_temp_yem.RDS")
+weekly_temp <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_temp.RDS")
 ####Aggregate precip by week
 
 daily_precip_long <- melt(mean_precip, id = "Date") %>% set_colnames(c("date", "region", "precip"))
@@ -198,7 +205,15 @@ weekly_precip <- aggregate(daily_precip_long$precip,
                            FUN = sum) %>%
   set_colnames(c("gov", "weeks_since", "precip"))
 
-saveRDS(weekly_precip, "C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_precip.RDS")
+weekly_precip_yem <- aggregate(weekly_precip$precip, by = list(weekly_precip$weeks_since), FUN = mean) %>% 
+  set_colnames(c("weeks_since", "precip"))
 
+
+weekly_precip_yem$date <- weekly_dates
+weekly_precip$date <- rep(weekly_dates, each = 23)
+
+saveRDS(weekly_precip_yem, "C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_precip_yem.RDS")
+saveRDS(weekly_precip, "C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_precip.RDS")
+#weekly_precip <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/weekly_precip.RDS")
 
 

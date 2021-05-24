@@ -8,11 +8,13 @@ library(ggpubr) #ggarrange()
 library(cowplot) ##align_plots
 library(dplyr)
 #library(rlist) #list.append()
-mean_temp <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/mean_temp.RDS")
+daily_temp <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/daily_temp.RDS")
 #eDEWS_temp <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/eDEWS_temp.RDS")
 #daily_mean_temp <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/daily_mean_temp.RDS")
-sum_precip <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/sum_precip.RDS")
-WHO_weekly <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly.RDS")
+daily_precip <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/daily_precip.RDS")
+WHO_weekly_dist <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_dist.RDS")
+WHO_weekly_gov <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_gov.RDS")
+WHO_weekly_yem <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_yem.RDS")
 #WHO_monthly_cases <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly_cases.RDS")
 #WHO_daynorm_cases <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_daynorm_cases.RDS")
 #eDEWS <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/df_full.RDS")
@@ -23,62 +25,45 @@ gov_names <- shape_govs$ADM1_EN
 pop_data <- "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popData.RDS"
 #pop_2017 <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/eDEWS_2020.RDS")
 
-
+#WHO_weekly_dist <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_dist.RDS")
 ###Epicurves
-#daily_mean_temp
-daily_mean_temp$date <- rownames(daily_mean_temp) %>% as.Date()
-dates <- as.POSIXct(eDEWS$Date)
+#mean_temp
+#daily_temp$date <- rownames(daily_temp) %>% as.Date()
+#WHO_weekly$Date <- WHO_weekly$Date %>% as.Date()
+#dates <- as.POSIXct(eDEWS$Date)
 
-colnames_vector <- colnames(eDEWS)
-colnames_vector[25] <- "Date"
-colnames_vector[26] <- "All"
-colnames(eDEWS) <- colnames_vector
-eDEWS$All <- eDEWS[,26]
+#colnames_vector <- colnames(WHO_weekly)
+#colnames_vector[25] <- "Date"
+#colnames_vector[26] <- "All"
+#colnames(eDEWS) <- colnames_vector
+#eDEWS$All <- eDEWS[,26]
 
+#dates2 <- WHO_weekly$Date %>% as.Date()
+#ymd_date <- WHO_weekly$Date %>% ymd()
 
 #Weekly eDEWS, temp, precip
-min_date <- min(eDEWS$Date)
-max_date <- max(eDEWS$Date)
-interval_st <- eDEWS %>% filter(weeks_since == 78 | weeks_since == 79) %>% dplyr::select(Date) %>% pull() %>% mean()
-interval_end <- eDEWS %>% filter(weeks_since == 104 | weeks_since == 105) %>% dplyr::select(Date) %>% pull() %>% mean()
-interval_end <- eDEWS %>% filter(weeks_since == 104) %>% dplyr::select(Date) %>% pull() 
-eDEWS_max <- max(eDEWS$total, na.rm = TRUE)
+min_date <- min(WHO_weekly_yem$Date, na.rm = TRUE) 
+max_date <- max(WHO_weekly_yem$Date, na.rm = TRUE)
+
 #eDEWS bar chart
-eDEWS_plt <- ggplot(data = eDEWS, aes(x = Date, y = total)) +
-  geom_bar(stat = "identity", size = 3) +
-  geom_rect(mapping = aes(xmin = interval_st, xmax = interval_end, 
-                          ymin = 0, ymax = eDEWS_max, fill = "yellow"),  col = "black", alpha = 0.006) +
+cases_plt <- ggplot(data = WHO_weekly_yem, aes(x = Date, y = S.Cases)) +
+  #geom_bar(stat = "identity", size = 3, col = "darkgrey", fill = "darkgrey") +
+  geom_segment(aes(xend = Date, y = 0, yend = S.Cases)) +
   labs(x = "",
        y = "Total Weekly Cases") +
   scale_x_date(date_labels = "%b %y", limits = c(min_date, max_date), 
                date_breaks = "1 month", minor_breaks = NULL) +
-  ggtitle("Reported cholera cases") +
+  ggtitle("Suspected cholera cases") +
   theme_bw() +
   theme(legend.position = "none",
         axis.title = element_text(size = 14), 
         axis.text = element_text(size = 12), 
         plot.title = element_text(size = 14, face = "bold"))
-
-#eDEWS & WHO line plot
-cases_plt <- ggplot() +
-  geom_line(data = eDEWS, aes(x = Date, y = total, col = "eDEWS")) +
-  geom_line(data = WHO_week_eq, aes(x = median_date, y = Yemen, col = "Normalised WHO")) +
-  labs(x = "",
-       y = "Total Weekly Cases",
-       color = "Data Source") +
-  scale_x_date(date_labels = "%b %y", limits = c(min_date, max_date), 
-               date_breaks = "1 month", minor_breaks = NULL) +
-  ggtitle("Reported cholera cases") +
-  theme_bw() +
-  theme(legend.position =  "bottom", 
-        axis.title = element_text(size = 14), 
-        axis.text = element_text(size = 12), 
-        plot.title = element_text(size = 14, face = "bold"),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 12))
+cases_plt
 
 
-temp_plt <- ggplot(data = filter(daily_mean_temp, weeks_since >= 31 & weeks_since <= 173)) +
+
+temp_plt <- ggplot(data = filter(daily_temp, weeks_since >= 31 & weeks_since <= 173)) +
   geom_line(aes(x = date, y = Yemen)) +
   ylab("24h Average Temperature (C)") +
   xlab("") +
