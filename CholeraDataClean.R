@@ -6,7 +6,6 @@ library(stats)
 library(rlist) #list.cbind
 library(ggplot2)
 library(magrittr)
-library(EpiEstim)
 #The data comes from here: https://app.powerbi.com/view?r=eyJrIjoiNTY3YmU0NTItMmFjYy00OTUxLWI2NzEtOTU5N2Q0MDBjMjE5IiwidCI6ImI3ZTNlYmJjLTE2ZTctNGVmMi05NmE5LTVkODc4ZDg3MDM5ZCIsImMiOjl9
 #NOTE: they stopped collecting data for some time in 2017 at the end of the first wave.
 #NOTE2: For some period in 2018, they changed the definition of 'cholera case' from suspected case to confirmed case
@@ -167,14 +166,23 @@ saveRDS(WHO_weeklyYem_per,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WH
 WHO_weeklyYem_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weeklyYem_per.RDS")
 
 #############################
-##Monthly Cases and Deaths per 100,000 population normalised to a 30 day month
+##Monthly Cases and Deaths per 100,000 population normalised to a 30 day month - At district level
 WHO_weekly_per$month <- month(WHO_weekly_per$Date)
 WHO_weekly_per$year <- year(WHO_weekly_per$Date)
-WHO_monthly_per <- WHO_weekly_per %>% group_by(month,year,Governorate,District) %>% summarise(across(c(S.Cases,Deaths), mean, na.rm = TRUE))
+WHO_monthly_per <- WHO_weekly_per %>% group_by(month,year,Governorate,District) %>% dplyr::summarise(across(c(S.Cases,Deaths), mean, na.rm = TRUE))
 WHO_monthly_per[,5:6] <- WHO_monthly_per[,5:6] * (30/7)  
 WHO_monthly_per %<>% mutate(months_since = month + 12*(year - 2017))
 WHO_monthly_per %<>% mutate(months_since_lag1 = months_since - 1)
 saveRDS(WHO_monthly_per,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthly_per.RDS")
+
+##Monthly Cases and Deaths per 100,000 population normalised to a 30 day month - Aggregated at Governorate level
+WHO_weeklyGov_per$month <- month(WHO_weeklyGov_per$Date)
+WHO_weeklyGov_per$year <- year(WHO_weeklyGov_per$Date)
+WHO_monthlyGov_per <- WHO_weeklyGov_per %>% group_by(month,year,Governorate) %>% dplyr::summarise(across(c(S.Cases,Deaths), mean, na.rm = TRUE))
+WHO_monthlyGov_per[,4:5] <- WHO_monthlyGov_per[,4:5] * (30/7)  
+WHO_monthlyGov_per %<>% mutate(months_since = month + 12*(year - 2017))
+WHO_monthlyGov_per %<>% mutate(months_since_lag1 = months_since - 1)
+saveRDS(WHO_monthlyGov_per,"C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthlyGov_per.RDS")
 
 ######### Attempt to estimate R Number
 ##example with Hajjah

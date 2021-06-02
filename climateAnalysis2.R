@@ -98,7 +98,7 @@ precip_plt <- ggplot(data = filter(daily_precip, Date >= min_date & Date <= max_
         plot.title = element_text(size = 14, face = "bold"))
 precip_plt
 
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/epicurve_wtempprecip.png", width = 1800, height = 900)  
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/epicurve_wtempprecip.png", width = 1800, height = 900)  
 plot_grid(cases_plt, temp_plt, precip_plt, align = "v", ncol = 1)
 dev.off()
 

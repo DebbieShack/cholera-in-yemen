@@ -356,13 +356,14 @@ saveRDS(area_byGov, "C:/Users/dms228/github/cholera-in-yemen/saved_data/area_byG
 
 
 #Aggregated at District level
-yemen_popDens_govAgg <- yemen_popDens %>% group_by(District) %>% dplyr::select(-District) %>% summarise(across(`2017`:`2020`,mean))
+yemen_popDens_govAgg <- yemen_popDens %>% group_by(Governorate) %>% dplyr::select(-District) %>% summarise(across(`2017`:`2020`,mean))
 
 saveRDS(yemen_pop, "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popData.RDS")
 #yemen_pop <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popData.RDS")
 saveRDS(yemen_popDens, "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDensData.RDS")
-#yemen_popDens <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDensData.RDS")
+yemen_popDens <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDensData.RDS")
+
 saveRDS(yemen_pop_govAgg,"C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_pop_govAgg.RDS")
 #yemen_pop_govAgg <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_pop_govAgg.RDS")
 
-saveRDS(popDens_byGov, "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDens_gov.RDS")
+saveRDS(yemen_popDens_govAgg, "C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDens_govAgg.RDS")

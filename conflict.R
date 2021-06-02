@@ -14,7 +14,7 @@ library(pscl)
 conflict_raw <- read.csv("C:/Users/dms228/OneDrive - University of Exeter/PhD/data/Yemen/conflict_data_yem.csv")
 shape_file_govs <- "C:/Users/dms228/Downloads/Yemen Data/yem_admbnda_adm1_govyem_cso_20191002.shp"
 shape_govs <- readOGR(shape_file_govs)
-tCase_pDist <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/tCase_pDist.RDS")
+#tCase_pDist <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/tCase_pDist.RDS")
 
 #Only consider events of type either "Shelling/artillery/millile attack" or "Air/drone strike" from 2017 onwards
 d1 <- as.POSIXct("2017-01-01 GMT")
@@ -53,26 +53,22 @@ explosions$admin1[explosions$admin1 == "Sadah"] <- "Saada"
 
 explosions$admin2[explosions$admin1 == "Sadah"] <- "Saada"
 
+
+saveRDS(explosions,"C:/Users/dms228/github/cholera-in-yemen/saved_data/explosions.RDS")
 ########################
 
 ##Join total cases and explosions at district level
 tExp_pDist <- aggregate(explosions$count, by = list(explosions$admin1, explosions$admin2), FUN = sum)
 colnames(tExp_pDist) <- c("Governorate", "District", "Total_explosions")
-tExpCaseDf <- inner_join(tExp_pDist, tCase_pDist, by = c("Governorate", "District"))
 
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/WHO_weekly_data/cases_strikes_basic.png", width = 600, height = 400)
-ggplot(data = tExpCaseDf, aes(x = Total_explosions, y = Total_Cases)) +
-  labs(title = "Total Cases vs. Total Strikes Regression Plot", x = "Strikes", y = "Suspected Cases") +
-  geom_point() +
-  theme_bw()
-dev.off()
+
 
 ##Join total cases per 100,000 inhabitants and explosions 
-WHO_weekly_per <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_weekly_per.RDS")
-explosions <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/explosions.RDS")
+WHO_weekly_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_per.RDS")
+explosions <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/explosions.RDS")
 
 ##Wave 1 (up to May 2019)
-w1_end <- as.POSIXct("2018-05-01")
+w1_end <- as.Date("2018-05-01")
 WHO_weekly_per_w1 <- WHO_weekly_per %>% filter(Date < w1_end) %>% group_by(Governorate, District) %>% 
   summarize(across(c(S.Cases, Deaths),sum,na.rm=TRUE)) 
 explosions_w1 <- explosions %>% filter(event_date < w1_end) %>% group_by(admin1, admin2) %>% 
@@ -82,7 +78,7 @@ explosions_w1 <- explosions %>% filter(event_date < w1_end) %>% group_by(admin1,
 tExpCasePerDf_w1 <- inner_join(WHO_weekly_per_w1, explosions_w1, by = c("Governorate", "District"))
 tExpCaseP
 
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/WHO_weekly_data/StrikesVsDeaths_w1.png", width = 600, height = 400)
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/strikesVsDeaths.png", width = 600, height = 400)
 ggplot(data = tExpCasePerDf_w1, aes(x = Count)) +
   geom_point(aes(y = Deaths)) +
   labs(x = "Total strikes", y = "Cholera deaths per 100,000 inhabitants", title = "First Wave") +
@@ -91,7 +87,7 @@ dev.off()
 
 
 ##Wave 2 (August 2018 and onwards)
-w2_start <- as.POSIXct("2018-08-01")
+w2_start <- as.Date("2018-08-01")
 WHO_weekly_per_w2 <- WHO_weekly_per %>% filter(Date < w2_start) %>% group_by(Governorate, District) %>% 
   summarize(across(c(S.Cases, Deaths),sum,na.rm=TRUE)) 
 explosions_w2 <- explosions %>% filter(event_date < w2_start) %>% group_by(admin1, admin2) %>% 
@@ -103,7 +99,7 @@ tExpCasePerDf_w1$Deaths <- tExpCasePerDf_w1$Deaths %>% as.integer()
 
 tExpCasePerDf_w2 <- inner_join(WHO_weekly_per_w2, explosions_w2, by = c("Governorate", "District"))
 
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/WHO_weekly_data/StrikesVsDeaths_w3.png", width = 600, height = 400)
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/StrikesVsDeaths_w2.png", width = 600, height = 400)
 ggplot(data = tExpCasePerDf_w2, aes(x = Count)) +
   geom_point(aes(y = Deaths)) +
   labs(x = "Total strikes", y = "Cholera deaths per 100,000 inhabitants", 
@@ -128,14 +124,14 @@ colnames(explosions_monthly) <- c("months_since", "gov", "strikes")
 monthly_sum_expl <- dcast(explosions_monthly, months_since ~ gov) #Data frame of weekly 'strikes' per governate
 monthly_sum_expl$Yemen <- explosions_monthly_yemen$`Total strikes`
 monthly_sum_expl$months_lag1 <- monthly_sum_expl$months_since - 1
-saveRDS(monthly_sum_expl,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/monthly_sum_expl.RDS")
+saveRDS(monthly_sum_expl,"C:/Users/dms228/github/cholera-in-yemen/saved_data/monthly_sum_expl.RDS")
 #sum_expl <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/sum_expl.RDS")
 
 #####Aggregate Monthly by District###############
-
+WHO_monthly_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthly_per.RDS")
 explosions %<>% mutate(months_since = month + 12*(year - 2017))
 explosions_monthly <- explosions %>% group_by(admin1, admin2, months_since) %>% summarise(Count = sum(count))
-#explosions_monthly_yemen <- aggregate(explosions$count, by = list(explosions$months_since), FUN = sum)
+explosions_monthly_yemen <- aggregate(explosions$count, by = list(explosions$months_since), FUN = sum)
 colnames(explosions_monthly_yemen) <- c("months_since", "Total strikes")
 colnames(explosions_monthly) <- c("Governorate","District","months_since","Strikes")
 MonthlyExpCases <- merge(WHO_monthly_per,explosions_monthly, by.x = c("Governorate", "District", "months_since_lag1"), by.y = c("Governorate", "District", "months_since"), all.x = TRUE)
@@ -150,6 +146,7 @@ monthly_sum_expl <- dcast(explosions_monthly, months_since ~ gov) #Data frame of
 monthly_sum_expl$Yemen <- explosions_monthly_yemen$`Total strikes`
 monthly_sum_expl$months_lag1 <- monthly_sum_expl$months_since - 1
 saveRDS(monthly_sum_expl,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/monthly_sum_expl.RDS")
+saveRDS(MonthlyExpCases,"C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/monthly_expl_dist.RDS")
 #sum_expl <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/sum_expl.RDS")
 
 #####Aggregate Weekly##############
@@ -171,111 +168,111 @@ sum_expl$wks_lag2 <- sum_expl$weeks_since - 2
 
 
 
-#Aggregate Annually
-eDEWS_annual <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/eDEWS_annual.RDS") #weekly average
-WHO_2019 <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_annual.RDS")[[2]] #Annual 2019 from WHO
-WHO_2018 <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_annual.RDS")[[1]] #Annual 2018 from WHO
-
-cases_2017 <- eDEWS_annual %>% subset(year == 2017) %>% subset(select = -c(year)) %>% 
-  merge(pop_2017, by.x = "gov", by.y = "Gov") %>% mutate(cases_per = (100000*cases)/Population)
-
-cases_2018 <- eDEWS_annual %>% subset(year == 2018) %>% subset(select = -c(year)) %>%
-  merge(pop_2017, by.x = "gov", by.y = "Gov") %>% mutate(cases_per = (100000*cases)/Population)
-
-cases_2019 <- eDEWS_annual %>% subset(year == 2019) %>% subset(select = -c(year)) %>%
-  merge(pop_2017, by.x = "gov", by.y = "Gov") %>% mutate(cases_per = (100000*cases)/Population)
-
-cases_2020 <- eDEWS_annual %>% subset(year == 2020) %>% subset(select = -c(year)) %>%
-  merge(pop_2017, by.x = "gov", by.y = "Gov") %>% mutate(cases_per = (100000*cases)/Population)
-
-saveRDS(list(cases_2017, cases_2018, cases_2019, cases_2020),
-        "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/eDEWS_byYear.RDS")
-
-explosions_annual <- aggregate(explosions$count, by = list(explosions$year, explosions$admin1), FUN = sum)
-colnames(explosions_annual) <- c("year", "gov", "strikes")
-stkr_2017 <- explosions_annual %>% subset(year == 2017) %>% subset(select = -year) %>% 
-  merge(cases_2017, by.x = "gov", by.y = "gov")
-
-stkr_2018 <- explosions_annual %>% subset(year == 2018) %>% subset(select = -year) %>% 
-  merge(cases_2018, by.x = "gov", by.y = "gov") %>% merge(WHO_2018, by.x = "gov", by.y = "gov") %>%
-  rename(cases_WHO = cases.y,deaths_WHO = deaths , cases_eDEWS = cases.x)
-
-
-stkr_2019 <- explosions_annual %>% subset(year == 2019) %>% subset(select = -year) %>% 
-  merge(cases_2019, by.x = "gov", by.y = "gov") %>% merge(WHO_2019, by.x = "gov", by.y = "gov") %>%
-  rename(cases_WHO = cases.y,deaths_WHO = deaths , cases_eDEWS = cases.x)
-
-stkr_2020 <- explosions_annual %>% subset(year == 2020) %>% subset(select = -year) %>% 
-  merge(cases_2020, by.x = "gov", by.y = "gov")
-
-
-
-#Merge in WHO annual cases data for 2018 and 2019
-coeffs <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/reg_coeffs.RDS")
-coeffs_shp <- merge(shape_govs, coeffs, by.x = "ADM1_EN", by.y = "gov")
-
-
-tm_shape(coeffs_shp) +
-  tm_polygons("temp", title = "Temperature Vs. Cases Regression Coefficient")
-
-
-tmap_mode("view")
-
-tmap_last()
-spplot(exp_shp, "strikes")
-
-### Cases Vs. Strikes Absoloute (eDEWS Data)
-plt_2017 <- ggplot(data = stkr_2017, aes(x = cases, y = strikes)) +
-  ggtitle("2017") + 
-  geom_point()
-plt_2018 <- ggplot(data = stkr_2018, aes(x = cases, y = strikes)) +
-  ggtitle("2018") + 
-  geom_point()
-plt_2019 <- ggplot(data = stkr_2019, aes(x = cases, y = strikes)) +
-  ggtitle("2019") + 
-  geom_point()
-plt_2020 <- ggplot(data = stkr_2020, aes(x = cases, y = strikes)) +
-  ggtitle("2020") + 
-  geom_point()
-
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/conflict_vs_cases.png", width = 900, height = 900)
-ggarrange(plt_2017, plt_2018, plt_2019, plt_2020, nrow = 2, ncol = 2) %>% 
-  annotate_figure(top = "Cholera Cases Against No. Strikes per Governate")
-dev.off()
-
-#(WHO Data)
-plt_2018_WHO <- ggplot(data = stkr_2018, aes(x = cases_WHO, y = strikes)) +
-  ggtitle("2018 (WHO Data)") + 
-  geom_point()
-plot(plt_2018_WHO)
-
-plt_2019_WHO <- ggplot(data = stkr_2019, aes(x = cases_WHO, y = strikes)) +
-  ggtitle("2019 (WHO Data)") + 
-  geom_point()
-plot(plt_2019_WHO)
-
-
-### Cases per capita Vs. Strikes
-plt_2017_cpt <- ggplot(data = stkr_2017, aes(x = cases_per, y = strikes)) +
-  ggtitle("2017") + 
-  xlab("Cases per 100,000 population") +
-  geom_point()
-plt_2018_cpt <- ggplot(data = stkr_2018, aes(x = cases_per, y = strikes)) +
-  ggtitle("2018") +
-  xlab("Cases per 100,000 population") +
-  geom_point()
-plt_2019_cpt <- ggplot(data = stkr_2019, aes(x = cases_per, y = strikes)) +
-  ggtitle("2019") + 
-  xlab("Cases per 100,000 population") +
-  geom_point()
-plt_2020_cpt <- ggplot(data = stkr_2020, aes(x = cases_per, y = strikes)) +
-  ggtitle("2020") + 
-  xlab("Cases per 100,000 population") +
-  geom_point()
-
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/conflict_vs_casescapita.png", width = 900, height = 900)
-ggarrange(plt_2017_cpt, plt_2018_cpt, plt_2019_cpt, plt_2020_cpt, nrow = 2, ncol = 2) %>% 
-  annotate_figure(top = text_grob("Cholera Cases Against No. Strikes per Governate", size = 18, face = "bold"))
-dev.off()
-
-, col.regions = brewer.pal(n = 16, name = "Reds")
+# #Aggregate Annually
+# eDEWS_annual <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/eDEWS_annual.RDS") #weekly average
+# WHO_2019 <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_annual.RDS")[[2]] #Annual 2019 from WHO
+# WHO_2018 <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_annual.RDS")[[1]] #Annual 2018 from WHO
+# 
+# cases_2017 <- eDEWS_annual %>% subset(year == 2017) %>% subset(select = -c(year)) %>% 
+#   merge(pop_2017, by.x = "gov", by.y = "Gov") %>% mutate(cases_per = (100000*cases)/Population)
+# 
+# cases_2018 <- eDEWS_annual %>% subset(year == 2018) %>% subset(select = -c(year)) %>%
+#   merge(pop_2017, by.x = "gov", by.y = "Gov") %>% mutate(cases_per = (100000*cases)/Population)
+# 
+# cases_2019 <- eDEWS_annual %>% subset(year == 2019) %>% subset(select = -c(year)) %>%
+#   merge(pop_2017, by.x = "gov", by.y = "Gov") %>% mutate(cases_per = (100000*cases)/Population)
+# 
+# cases_2020 <- eDEWS_annual %>% subset(year == 2020) %>% subset(select = -c(year)) %>%
+#   merge(pop_2017, by.x = "gov", by.y = "Gov") %>% mutate(cases_per = (100000*cases)/Population)
+# 
+# saveRDS(list(cases_2017, cases_2018, cases_2019, cases_2020),
+#         "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/eDEWS_byYear.RDS")
+# 
+# explosions_annual <- aggregate(explosions$count, by = list(explosions$year, explosions$admin1), FUN = sum)
+# colnames(explosions_annual) <- c("year", "gov", "strikes")
+# stkr_2017 <- explosions_annual %>% subset(year == 2017) %>% subset(select = -year) %>% 
+#   merge(cases_2017, by.x = "gov", by.y = "gov")
+# 
+# stkr_2018 <- explosions_annual %>% subset(year == 2018) %>% subset(select = -year) %>% 
+#   merge(cases_2018, by.x = "gov", by.y = "gov") %>% merge(WHO_2018, by.x = "gov", by.y = "gov") %>%
+#   rename(cases_WHO = cases.y,deaths_WHO = deaths , cases_eDEWS = cases.x)
+# 
+# 
+# stkr_2019 <- explosions_annual %>% subset(year == 2019) %>% subset(select = -year) %>% 
+#   merge(cases_2019, by.x = "gov", by.y = "gov") %>% merge(WHO_2019, by.x = "gov", by.y = "gov") %>%
+#   rename(cases_WHO = cases.y,deaths_WHO = deaths , cases_eDEWS = cases.x)
+# 
+# stkr_2020 <- explosions_annual %>% subset(year == 2020) %>% subset(select = -year) %>% 
+#   merge(cases_2020, by.x = "gov", by.y = "gov")
+# 
+# 
+# 
+# #Merge in WHO annual cases data for 2018 and 2019
+# coeffs <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/reg_coeffs.RDS")
+# coeffs_shp <- merge(shape_govs, coeffs, by.x = "ADM1_EN", by.y = "gov")
+# 
+# 
+# tm_shape(coeffs_shp) +
+#   tm_polygons("temp", title = "Temperature Vs. Cases Regression Coefficient")
+# 
+# 
+# tmap_mode("view")
+# 
+# tmap_last()
+# spplot(exp_shp, "strikes")
+# 
+# ### Cases Vs. Strikes Absoloute (eDEWS Data)
+# plt_2017 <- ggplot(data = stkr_2017, aes(x = cases, y = strikes)) +
+#   ggtitle("2017") + 
+#   geom_point()
+# plt_2018 <- ggplot(data = stkr_2018, aes(x = cases, y = strikes)) +
+#   ggtitle("2018") + 
+#   geom_point()
+# plt_2019 <- ggplot(data = stkr_2019, aes(x = cases, y = strikes)) +
+#   ggtitle("2019") + 
+#   geom_point()
+# plt_2020 <- ggplot(data = stkr_2020, aes(x = cases, y = strikes)) +
+#   ggtitle("2020") + 
+#   geom_point()
+# 
+# png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/conflict_vs_cases.png", width = 900, height = 900)
+# ggarrange(plt_2017, plt_2018, plt_2019, plt_2020, nrow = 2, ncol = 2) %>% 
+#   annotate_figure(top = "Cholera Cases Against No. Strikes per Governate")
+# dev.off()
+# 
+# #(WHO Data)
+# plt_2018_WHO <- ggplot(data = stkr_2018, aes(x = cases_WHO, y = strikes)) +
+#   ggtitle("2018 (WHO Data)") + 
+#   geom_point()
+# plot(plt_2018_WHO)
+# 
+# plt_2019_WHO <- ggplot(data = stkr_2019, aes(x = cases_WHO, y = strikes)) +
+#   ggtitle("2019 (WHO Data)") + 
+#   geom_point()
+# plot(plt_2019_WHO)
+# 
+# 
+# ### Cases per capita Vs. Strikes
+# plt_2017_cpt <- ggplot(data = stkr_2017, aes(x = cases_per, y = strikes)) +
+#   ggtitle("2017") + 
+#   xlab("Cases per 100,000 population") +
+#   geom_point()
+# plt_2018_cpt <- ggplot(data = stkr_2018, aes(x = cases_per, y = strikes)) +
+#   ggtitle("2018") +
+#   xlab("Cases per 100,000 population") +
+#   geom_point()
+# plt_2019_cpt <- ggplot(data = stkr_2019, aes(x = cases_per, y = strikes)) +
+#   ggtitle("2019") + 
+#   xlab("Cases per 100,000 population") +
+#   geom_point()
+# plt_2020_cpt <- ggplot(data = stkr_2020, aes(x = cases_per, y = strikes)) +
+#   ggtitle("2020") + 
+#   xlab("Cases per 100,000 population") +
+#   geom_point()
+# 
+# png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/conflict_vs_casescapita.png", width = 900, height = 900)
+# ggarrange(plt_2017_cpt, plt_2018_cpt, plt_2019_cpt, plt_2020_cpt, nrow = 2, ncol = 2) %>% 
+#   annotate_figure(top = text_grob("Cholera Cases Against No. Strikes per Governate", size = 18, face = "bold"))
+# dev.off()
+# 
+# , col.regions = brewer.pal(n = 16, name = "Reds")
