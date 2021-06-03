@@ -11,7 +11,8 @@ library(MASS)
 # shelter_type <- read_excel("C:/Users/dms228/OneDrive - University of Exeter/PhD/data/Yemen/dtm_displacement_2019.xlsx", 
 #                            sheet = "Shelter Type")
 yemen_popDens <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDensData.RDS")
-WHO_weekly <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly.RDS")
+WHO_weekly <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_dist.RDS")
+popDens_byGov <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/yemen_popDens_govAgg.RDS")
 WHO_weekly_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_per.RDS")
 WHO_monthly_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthly_per.RDS")
 #WHO_monthly <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/WHO_monthly.RDS")
@@ -19,12 +20,14 @@ WHO_monthly_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/W
 WHO_weeklyGov_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weeklyGov_per.RDS")
 WHO_weeklyGov <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_weekly_gov.RDS")
 WHO19_monthly_gov <- WHO_monthly %>% filter(Year == 2019)
+WHO19_monthly_distPer <- WHO_monthly_per %>% filter(year == 2019)
+WHO19_monthlyGov_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/WHO_monthlyGov_per.RDS") %>% filter(year == 2019)
 
 #popDens_byGov <- readRDS("C:/Users/dms228/OneDrive - University of Exeter/R Scripts/saved_data/yemen_popDens_gov.RDS")
 IDPs <- read_excel("C:/Users/dms228/OneDrive - University of Exeter/PhD/data/Yemen/dtm_displacement_2019.xlsx", 
                    sheet = "RDT-IDPs", skip = 1)[-1,] %>% dplyr::select(-c(2,3,5,6,7,8,11,13,16,33)) 
 
-C:/Users/dms228/github/cholera-in-yemen/saved_data/
+#C:/Users/dms228/github/cholera-in-yemen/saved_data/
 
 WHO_weekly$Date <- WHO_weekly$Date %>% as.numeric() %>% as.POSIXct.Date()
 WHO_weekly$Year <- WHO_weekly$Date %>% year()
@@ -34,8 +37,8 @@ WHO_weekly$Year <- WHO_weekly$Date %>% year()
 
 
 ##WHO total cases in 2019
-WHO19_distTot <- WHO_weekly %>% filter(year(Date) == 2019) %>% group_by(Governorate, District) %>% summarise(across(S.Cases:Under5, sum))
-WHO19_govTot <- WHO_weeklyGov %>% filter(year(Date) == 2019) %>% group_by(Governorate) %>% summarise(across(S.Cases:Under5, sum, na.rm = TRUE))
+WHO19_distTot <- WHO_weekly %>% filter(year(Date) == 2019) %>% group_by(Governorate, District) %>% dplyr::summarise(across(S.Cases:Under5, sum))
+WHO19_govTot <- WHO_weeklyGov %>% filter(year(Date) == 2019) %>% group_by(Governorate) %>% dplyr::summarise(across(S.Cases:Under5, sum, na.rm = TRUE))
 
 
 #####IDP Cleaning, cleaning and adding some helpful dates
@@ -59,32 +62,34 @@ HH_arriv <- aggregate(IDPs$`Total # of HH`, by = list(Gov = IDPs$`Governorate`),
 
 #Total number of households leaving each district in 2019
 tot_idp_dist <- merge(HH_leaving_dist, WHO19_distTot, by.x = c("Gov","Dis"), by.y = c("Governorate","District"),
-                      all.y = TRUE) %>% rename(HH_leaving = x)
+                      all.y = TRUE) %>% dplyr::rename(HH_leaving = x)
 tot_idp_dist$HH_leaving[is.na(tot_idp_dist$HH_leaving)] <- 0 #Missing HH_leaving data is assumed to be zero
 tot_idp_dist <- na.omit(tot_idp_dist) #District (mostly 'blank') with no cholera case data are removed. 
 #Total number of households leaving or arriving at each Governorate in 2019
 tot_idp_gov <- merge(HH_leaving_gov, HH_arriv, by.x = c("Gov"), by.y = "Gov") %>% merge(WHO19_govTot, by.x = "Gov", by.y = "Governorate") %>%
-  rename(HH_leaving = x.x, HH_arrive = x.y) %>% merge(popDens_byGov, by.x = "Gov", by.y = "Governorate") %>%
-  dplyr::select(-c(`2017`,`2018`,`2020`)) %>% rename(PopDensity = `2019`)
+  dplyr::rename(HH_leaving = x.x, HH_arrive = x.y) %>% merge(popDens_byGov, by.x = "Gov", by.y = "Governorate") %>%
+  dplyr::select(-c(`2017`,`2018`,`2020`)) %>% dplyr::rename(PopDensity = `2019`)
 
+saveRDS(tot_idp_gov,"C:/Users/dms228/github/cholera-in-yemen/saved_data/tot_idp_gov.RDS")
+saveRDS(tot_idp_dist, "C:/Users/dms228/github/cholera-in-yemen/saved_data/tot_idp_dist.RDS")
 
 
 #Linear regression (log) plot of comparing the No.Households fleeing a district with cholera suspected cases in the same district
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/WHO_weekly_data/HH_fleeingVsCases_dist.png", width = 600, height = 400)                   
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/HH_fleeingVsCases_dist.png", width = 600, height = 400)                   
 ggplot(data = tot_idp_dist, aes(x = log(HH_leaving), y = S.Cases)) +
   geom_point() +
   labs(x = "Number of Households Fleeing District (log)", y = "Number of Suspected Cases") +
   theme_bw()
 dev.off()
 
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/WHO_weekly_data/HH_fleeingVsDeaths_gov.png", width = 600, height = 400)                   
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/idp/HH_fleeingVsDeaths_gov.png", width = 600, height = 400)                   
 ggplot(data = tot_idp_gov, aes(x = log(HH_leaving), y = log(Deaths))) +
   geom_point() +
   labs(x = "Number of Households Fleeing Governorate (log)", y = "Number of Deaths in Governorate (log)") +
   theme_bw()
 dev.off()
 
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/WHO_weekly_data/HH_fleeingVsCases_gov.png", width = 600, height = 400)                   
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/idp/HH_fleeingVsCases_gov.png", width = 600, height = 400)                   
 ggplot(data = tot_idp_gov, aes(x = log(HH_leaving), y = log(S.Cases))) +
   geom_point() +
   labs(x = "Number of Households Fleeing Governorate (log)", y = "Number of Suspected Cases in Governorate (log)") +
@@ -117,38 +122,37 @@ colnames(tot_idp) <- c("gov", "HH_leaving", "HH_arriving", "totCases_19")
 tot_idp$totCases_19 <- as.numeric(tot_idp$totCases_19)
 
 #Plot of people fleeing a Governorate vs. Total 2019 cases (WHO)
-ggplot(data = tot_idp, aes(x = log(HH_leaving), y = totCases_19)) +
+ggplot(data = tot_idp_gov, aes(x = log(HH_leaving), y = S.Cases)) +
   geom_point()
+ggplot(data = tot_idp_gov, aes(x = log(HH_leaving), y = log(Deaths))) +
+  geom_point()
+
 
 ggplot(data = tot_idp, aes(x = HH_arriving, y = totCases_19)) +
   geom_point()
 
-#Test zone
-test <- IDPs %>% filter(month == 2) %>% filter(`Governorate of Origin` == "Hajjah" & `Governorate` == "AlHudaydah") %>% 
-  select(`Total # of HH`) %>% pull() %>% sum()
-
 
 #Estimated Imported Infections for each governorate
+tot_idp_gov <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_data/tot_idp_gov.RDS")
+
+
 #Initialise df
 EstImpInf_byGov <- data.frame()
-i = 5
-for(i in 1:20){
+for(i in 1:21){
   gov <- tot_idp_gov$Gov[i]
-  gov_idp <- IDPs %>% filter(Governorate == gov)
+  gov_idp <- IDPs %>% filter(Governorate == gov) #Filter people going to `gov`
   idp_agg1 <- aggregate(gov_idp$`Total # of HH`, by = list(gov_idp$`Governorate of Origin`, gov_idp$month), 
                         FUN = sum) #Ignore districts. Aggregate (sum) items with matching origin Governorate and month
   colnames(idp_agg1) <- c("gov_orig", "month", "HH")
   idp_agg1$origCholProb <- rep(0, nrow(idp_agg1))
-  for(j in 1:nrow(idp_agg1)){ #The probability that any given person coming from the country is likely to have cholera
-    gov_month <- WHO19_monthly_govPer %>%
+  for(j in 1:nrow(idp_agg1)){ #The probability that any given person coming from the district is likely to have cholera
+    gov_month <- WHO19_monthlyGov_per %>%
       filter(month == idp_agg1$month[j]) %>%
       filter(Governorate == idp_agg1$gov_orig[j])
-    
-    tryCatch(idp_agg1$origCholProb[j] <- (gov_month[3] %>% pull()) / 100000,
+    tryCatch(idp_agg1$origCholProb[j] <- (gov_month[4] %>% pull()) / 100000,
              error = function(e) {print(paste("Error! Gov_ent:", gov,
-                                              "Month:",idp_distMonthAgg$month[j],
-                                              "  Gov_orig:",idp_distMonthAgg$gov_orig[j],
-                                              "  Dist_orig:",idp_distMonthAgg$dist_orig[j],
+                                              "Month:",idp_agg1$month[j],
+                                              "  Gov_orig:",idp_agg1$gov_orig[j],
                                               "ij = ",i,j))})
   }
   idp_agg1$estInf <- idp_agg1$HH * idp_agg1$origCholProb * 6.7 #Average persons per HH = 6.7
@@ -159,10 +163,12 @@ for(i in 1:20){
 }
 
 
+
 #Estimated Imported Infections for each District
 #Initialise df
 EstImpInf_byDist <- data.frame()
-i = 5
+i = 4
+j = 1
 for(i in 1:20){
   gov <- tot_idp_gov$Gov[i] # The receiving governorate
   gov_idp <- IDPs %>% filter(Governorate == gov)
@@ -178,7 +184,7 @@ for(i in 1:20){
       filter(month == idp_distMonthAgg$month[j]) %>%
       filter(Governorate == idp_distMonthAgg$gov_orig[j]) %>%
       filter(District == idp_distMonthAgg$dist_orig[j])
-    tryCatch(idp_distMonthAgg$origCholProb[j] <- (orig_dist_month[4] %>% pull()) / 100000,
+    tryCatch(idp_distMonthAgg$origCholProb[j] <- (orig_dist_month[5] %>% pull()) / 100000,
              error = function(e) {print(paste("Error! Gov_ent:", gov,
                                               "Month:",idp_distMonthAgg$month[j],
                                               "  Gov_orig:",idp_distMonthAgg$gov_orig[j],
