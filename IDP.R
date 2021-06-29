@@ -27,6 +27,8 @@ WHO19_monthlyGov_per <- readRDS("C:/Users/dms228/github/cholera-in-yemen/saved_d
 IDPs <- read_excel("C:/Users/dms228/OneDrive - University of Exeter/PhD/data/Yemen/dtm_displacement_2019.xlsx", 
                    sheet = "RDT-IDPs", skip = 1)[-1,] %>% dplyr::select(-c(2,3,5,6,7,8,11,13,16,33)) 
 
+IDPs <- IDPs[IDPs$`Total # of HH` > 0,]
+
 #C:/Users/dms228/github/cholera-in-yemen/saved_data/
 
 WHO_weekly$Date <- WHO_weekly$Date %>% as.numeric() %>% as.POSIXct.Date()
@@ -70,15 +72,22 @@ tot_idp_gov <- merge(HH_leaving_gov, HH_arriv, by.x = c("Gov"), by.y = "Gov") %>
   dplyr::rename(HH_leaving = x.x, HH_arrive = x.y) %>% merge(popDens_byGov, by.x = "Gov", by.y = "Governorate") %>%
   dplyr::select(-c(`2017`,`2018`,`2020`)) %>% dplyr::rename(PopDensity = `2019`)
 
-saveRDS(tot_idp_gov,"C:/Users/dms228/github/cholera-in-yemen/saved_data/tot_idp_gov.RDS")
-saveRDS(tot_idp_dist, "C:/Users/dms228/github/cholera-in-yemen/saved_data/tot_idp_dist.RDS")
+#saveRDS(tot_idp_gov,"C:/Users/dms228/github/cholera-in-yemen/saved_data/tot_idp_gov.RDS")
+#saveRDS(tot_idp_dist, "C:/Users/dms228/github/cholera-in-yemen/saved_data/tot_idp_dist.RDS")
 
 
 #Linear regression (log) plot of comparing the No.Households fleeing a district with cholera suspected cases in the same district
-png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/HH_fleeingVsCases_dist.png", width = 600, height = 400)                   
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/idp/lgHH_fleeingVsCases_dist.png", width = 600, height = 400)                   
 ggplot(data = tot_idp_dist, aes(x = log(HH_leaving), y = S.Cases)) +
   geom_point() +
   labs(x = "Number of Households Fleeing District (log)", y = "Number of Suspected Cases") +
+  theme_bw()
+dev.off()
+
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/idp/HH_fleeingVsCases_dist.png", width = 600, height = 400)                   
+ggplot(data = tot_idp_dist, aes(x = HH_leaving, y = S.Cases)) +
+  geom_point() +
+  labs(x = "Number of Households Fleeing District", y = "Number of Suspected Cases") +
   theme_bw()
 dev.off()
 
@@ -141,6 +150,7 @@ EstImpInf_byGov <- data.frame()
 for(i in 1:21){
   gov <- tot_idp_gov$Gov[i]
   gov_idp <- IDPs %>% filter(Governorate == gov) #Filter people going to `gov`
+  gov_idp <- gov_idp[which(gov_idp$`Total # of HH` > 0),] #Remove negative HH numbers (assume data error)
   idp_agg1 <- aggregate(gov_idp$`Total # of HH`, by = list(gov_idp$`Governorate of Origin`, gov_idp$month), 
                         FUN = sum) #Ignore districts. Aggregate (sum) items with matching origin Governorate and month
   colnames(idp_agg1) <- c("gov_orig", "month", "HH")
@@ -152,7 +162,7 @@ for(i in 1:21){
     tryCatch(idp_agg1$origCholProb[j] <- (gov_month[4] %>% pull()) / 100000,
              error = function(e) {print(paste("Error! Gov_ent:", gov,
                                               "Month:",idp_agg1$month[j],
-                                              "  Gov_orig:",idp_agg1$gov_orig[j],
+                                              "Gov_orig:",idp_agg1$gov_orig[j],
                                               "ij = ",i,j))})
   }
   idp_agg1$estInf <- idp_agg1$HH * idp_agg1$origCholProb * 6.7 #Average persons per HH = 6.7
@@ -172,6 +182,7 @@ j = 1
 for(i in 1:20){
   gov <- tot_idp_gov$Gov[i] # The receiving governorate
   gov_idp <- IDPs %>% filter(Governorate == gov)
+  gov_idp <- gov_idp[gov_idp$`Total # of HH`>0,] #Remove all negative numbers. Assume error in dataset. 
   idp_distMonthAgg <- aggregate(gov_idp$`Total # of HH`, by = list(gov_idp$`Governorate of Origin`, 
                                                                    gov_idp$`District of Origin`, gov_idp$month), 
                                 FUN = sum) # Aggregate (sum) items by origin Governorate, origin district and month for HH entering Governorate [i]
@@ -192,6 +203,7 @@ for(i in 1:20){
                                               "ij = ",i,j))})
   }
   idp_distMonthAgg$estInf <- idp_distMonthAgg$HH * idp_distMonthAgg$origCholProb * 6.7 #Average persons per HH = 6.7
+  idp_distMonthAgg <- idp_distMonthAgg[!is.na(idp_distMonthAgg$origCholProb),] #Remove NaNs. Not quite sure why they're there. I think difference in names
   idp_MonthAgg <- aggregate(idp_distMonthAgg$estInf, by = list(idp_distMonthAgg$month), FUN = sum)
   colnames(idp_MonthAgg) <- c("month", "estInf")
   idp_MonthAgg$gov <- rep(gov, nrow(idp_MonthAgg))
@@ -201,6 +213,11 @@ for(i in 1:20){
 #Combine EstImpInf_byGov and EstImpInf_byDist to compare
 EstImpInf_both <- merge(EstImpInf_byGov, EstImpInf_byDist, by.x = c("month","gov"), by.y = c("month","gov"))
 colnames(EstImpInf_both) <- c("Month","Governorate","byGov","byDist")
+
+ggplot(data = EstImpInf_both) +
+  geom_line(aes(x = Month, y = byGov, col = Governorate))
+ggplot(data = EstImpInf_both) +
+  geom_line(aes(x = Month, y = byDist, col = Governorate))
 
 #example AlHudaydah
 AlHud_estImp <- EstImpInf_both %>% filter(Governorate == "AlHudaydah")
@@ -234,10 +251,10 @@ EstImpInfxCases <- merge(WHO19_govTot, EstImpInf_annual, by.x = "Governorate", b
 EstImpInfxCases$S.Cases <- EstImpInfxCases$S.Cases %>% as.integer
 EstImpInfxCases$ImpCases <- EstImpInfxCases$ImpCases %>% as.integer
 
-png(file = "C:/Users/dms228/OneDrive - University of Exeter/R Scripts/plots/WHO_weekly_data/S.CasesVs.ImpCases.png", width = 600, height = 400)
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/idp/EstImpVsCases_gov.png", width = 600, height = 400)
 ggplot(data = EstImpInfxCases, aes(x = ImpCases, y = S.Cases)) +
   geom_point() +
-  labs(x = "Estimated Imported Cases", y = "Suspected Cases per 100,000 inhabitants") +
+  labs(x = "Estimated Imported Cases", y = "Suspected Cases") +
   theme_bw()
 dev.off()
 
@@ -246,4 +263,42 @@ lm <- lm(S.Cases ~ ImpCases, data = EstImpInfxCases)
 summary(negbin)
 summary(lm)
 
+##Merge cholera data and EstImpInf_byDist
+EstImpInf_annual.dist <- EstImpInf_byDist %>% group_by(gov) %>% summarise(ImpCases = sum(estInf))
+EstImpInfxCases.dist <- merge(WHO19_govTot, EstImpInf_annual.dist, by.x = "Governorate", by.y = "gov")
+EstImpInfxCases.dist$S.Cases <- EstImpInfxCases.dist$S.Cases %>% as.integer
+EstImpInfxCases.dist$ImpCases <- EstImpInfxCases.dist$ImpCases %>% as.integer
+
+
+ggplot(data = EstImpInfxCases.dist, aes(x = ImpCases, y = S.Cases)) +
+  geom_point() +
+  labs(x = "Estimated Imported Cases", y = "Suspected Cases") +
+  theme_bw()
+dev.off()
+
+negbin.dist <- glm.nb(S.Cases ~ ImpCases, data = EstImpInfxCases.dist)
+lm.dist <- lm(S.Cases ~ ImpCases, data = EstImpInfxCases)
+summary(negbin.dist)
+summary(lm.dist)
+###To conclude, aggregating by district is less helpful than aggregating just by Gov. So we'll now ignore aggregating by district
+
+##Just to check it was useful, we'll do suspected cases vs. incoming idps.
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/idp/HHAriveVsCases_gov.png", width = 600, height = 400)
+ggplot(data = tot_idp_gov, aes(x = HH_arrive, y = S.Cases)) +
+  geom_point() +
+  labs(x = "Households arriving in Governorate", y = "Suspected Cases") +
+  theme_bw()
+dev.off()
+
+png(file = "C:/Users/dms228/github/cholera-in-yemen/plots/idp/HHAriveVsDeaths_gov.png", width = 600, height = 400)
+ggplot(data = tot_idp_gov, aes(x = HH_arrive, y = Deaths)) +
+  geom_point() +
+  labs(x = "Households arriving in Governorate", y = "Cholera deaths") +
+  theme_bw()
+dev.off()
+
+lm.HH <- lm(S.Cases ~ HH_arrive, data = tot_idp_gov)
+lm.HH.deaths <- lm(Deaths ~ HH_arrive, data = tot_idp_gov)
+summary(lm.HH)
+summary(lm.HH.deaths)
 #I'm not actually adding any new code here. Just a comment to test GitHub
